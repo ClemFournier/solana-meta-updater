@@ -1,10 +1,10 @@
 import assert from 'assert';
 import { NftUpdator } from '../services/nft-updator';
+
+require('dotenv').config({path:'../config/.env'});
   
 describe("NFT Updator", () => {
     let nftUpdator: NftUpdator;
-    let testMint = 'HtbB2P1Pn5mC7r2sBkixzFJ9NM6uuoLxAmWS47fPe51D';
-    let testMetadata = 'https://ipfs.io/ipfs/bafybeiezeeu37shlzjtau3bols6oxiomhpaylyr2ykannwqk3s4i7wdbom/453.json';
 
     before(async () => {
         nftUpdator = new NftUpdator();
@@ -20,18 +20,24 @@ describe("NFT Updator", () => {
     });
 
     it("One NFT without metadata info, should 1 errors & 0 processing", async () => {
+        if (!process.env.TEST_MINT) {
+            assert.fail('Parameters wrong');
+        }
         const processedNft = await nftUpdator.processNftList([{
             metadataToUpdate: undefined,
-            mint: testMint
+            mint: process.env.TEST_MINT
         }]);
         assert.equal(processedNft.processing.length, 0);
         assert.equal(processedNft.errors.length, 1);
     });
 
     it("One NFT with good arguments, should 0 error & 1 processing", async () => {
+        if (!process.env.TEST_MINT || !process.env.TEST_METADATA) {
+            assert.fail('Parameters wrong');
+        }
         const processedNft = await nftUpdator.processNftList([{
-            metadataToUpdate: testMetadata,
-            mint: testMint
+            metadataToUpdate: process.env.TEST_METADATA,
+            mint: process.env.TEST_MINT
         }]);
         assert.equal(processedNft.processing.length, 1);
         assert.equal(processedNft.errors.length, 0);

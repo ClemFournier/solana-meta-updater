@@ -1,5 +1,5 @@
 import assert from 'assert';
-import { SolanaMetaUpdater } from '../src/app';
+import { SolanaMetaUpdater } from '../app';
   
 describe("Solana-Meta-Updator", () => {
   let mainProgram: SolanaMetaUpdater;

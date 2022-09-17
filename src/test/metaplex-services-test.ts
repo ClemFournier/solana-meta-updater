@@ -1,10 +1,10 @@
 import assert from 'assert';
 import { MetaplexService } from '../services/metaplex-service';
+
+require('dotenv').config({path:'../config/.env'});
   
 describe("Metaplex Services", () => {
     let metaplexService: MetaplexService;
-    let testMint = 'HtbB2P1Pn5mC7r2sBkixzFJ9NM6uuoLxAmWS47fPe51D';
-    let testMetadata = 'https://ipfs.io/ipfs/bafybeiezeeu37shlzjtau3bols6oxiomhpaylyr2ykannwqk3s4i7wdbom/453.json';
 
   before(async () => {
     metaplexService = new MetaplexService();
@@ -24,13 +24,16 @@ describe("Metaplex Services", () => {
     });
       
     it("Update NFT", async () => {
-        const metaplexNft = await metaplexService.getNft(testMint);
+        if (!process.env.TEST_MINT || !process.env.TEST_METADATA) {
+          assert.fail('Parameters wrong');
+        }
+        const metaplexNft = await metaplexService.getNft(process.env.TEST_MINT);
 
         if (metaplexNft === null) {
             assert.fail(`Couldn't get NFT from Metaplex`);
         } 
 
-        const updatedNft = await metaplexService.updateMetadata(metaplexNft, testMetadata);
+        const updatedNft = await metaplexService.updateMetadata(metaplexNft, process.env.TEST_METADATA);
 
         assert.equal(updatedNft, true);
     }).timeout(30000);

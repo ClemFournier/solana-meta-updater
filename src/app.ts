@@ -1,6 +1,6 @@
-import { NftRetriever } from "../services/nft-retriever";
+import { NftRetriever } from "./services/nft-retriever";
 import schedule from "node-schedule";
-import { NftUpdator } from "../services/nft-updator";
+import { NftUpdator } from "./services/nft-updator";
 
 export class SolanaMetaUpdater {
     private mode: 'once' | 'schedule';

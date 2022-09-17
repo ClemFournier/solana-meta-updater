@@ -13,7 +13,10 @@ export class MetaplexService {
     private wallet: Keypair;
 
     constructor() {
-        this.secretKey = Uint8Array.from(JSON.parse(process.env.UPDATE_AUTHORITY_KEY as string));
+        if (!process.env.UPDATE_AUTHORITY_KEY || !process.env.NETWORK) {
+            throw('Environement variable incorrect');
+        }
+        this.secretKey = Uint8Array.from(JSON.parse(process.env.UPDATE_AUTHORITY_KEY));
         this.wallet = Keypair.fromSecretKey(this.secretKey);
         this.connection = new Connection(clusterApiUrl(process.env.NETWORK as Cluster));
         this.metaplex = Metaplex.make(this.connection)

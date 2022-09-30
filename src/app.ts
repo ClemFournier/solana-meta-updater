@@ -1,10 +1,15 @@
 import { NftRetriever } from "./services/nft-retriever";
 import schedule from "node-schedule";
 import { NftUpdator } from "./services/nft-updator";
+import { NftsService } from "./services/nfts-service";
+
+require('dotenv').config({path:'./config/.env'});
 
 export class SolanaMetaUpdater {
     private mode: 'once' | 'schedule';
     private frequency: number;
+    private collectionId: string | undefined;
+    private nftsService: NftsService;
     private nftRetriever: NftRetriever;
     private nftUpdator: NftUpdator;
     private scheduleJob: schedule.Job;
@@ -12,8 +17,15 @@ export class SolanaMetaUpdater {
     constructor(mode: 'once' | 'schedule', scheduleFrequency = 5000) {
         this.mode = mode;
         this.frequency = scheduleFrequency;
-        this.nftRetriever = new NftRetriever();
-        this.nftUpdator = new NftUpdator();
+        this.collectionId = process.env.COLLECTION_ID;
+
+        if (!this.collectionId) {
+            throw('Enviromenent variables incorrect for SolanaMetaUpdater');
+        }
+
+        this.nftsService = new NftsService();
+        this.nftRetriever = new NftRetriever(this.nftsService);
+        this.nftUpdator = new NftUpdator(this.nftsService);
         this.scheduleJob = new schedule.Job('updator-process');
 
         switch (mode) {
@@ -26,20 +38,30 @@ export class SolanaMetaUpdater {
                 });
                 break;
             default:
-                console.log('Wrong mode argument');
+                console.log(`${new Date().toLocaleString()} - Wrong mode argument`);
         }
     }
 
     async startProcess() : Promise<void> {
         try {
-            const nftToProcessList = await this.nftRetriever.getNftsToProcess(); // GET NFTS TO BURN FROM TENSEI API
+            if (!this.collectionId) {
+                throw('Enviromenent variables incorrect for SolanaMetaUpdater');
+            }
+
+            const nftToProcessList = await this.nftRetriever.getNftsToProcess(this.collectionId);
 
             if (!nftToProcessList || nftToProcessList.length === 0) return;
 
-            const processResult = await this.nftUpdator.processNftList(nftToProcessList); // PROCESS THOSE NFTS
+            const processResult = await this.nftUpdator.processNftList(nftToProcessList);
+
+            const numberProcessed = processResult.filter(res => res.processed).length;
+
+            if (numberProcessed > 0) {
+                console.log(`${new Date().toLocaleString()} - ${processResult.filter(res => res.processed).length} processed.`);
+            }
 
         } catch (e: any) {
-            console.log(`Process stoped: ${e}`);
+            console.log(`${new Date().toLocaleString()} - Process stoped: ${e}`);
         }
     }
 
@@ -61,4 +83,10 @@ export class SolanaMetaUpdater {
 
 }
 
-// const mainProgram = new SolanaMetaUpdater('once');
+const mode = process.env.MODE;
+
+if (!mode || (mode !== 'once' && mode !== 'schedule')) {
+    throw('Enviromenent variables incorrect');
+}
+
+const mainProgram = new SolanaMetaUpdater(mode);

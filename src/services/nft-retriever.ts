@@ -1,22 +1,22 @@
-import axios from 'axios';
 import { NftToProcess } from '../models/nft-to-process';
+import { NftsService } from './nfts-service';
 
 export class NftRetriever {
-    constructor() {}
+    private nftsService: NftsService;
 
-    async getNftsToProcess() : Promise<NftToProcess[] | null> {
+    constructor(nftsService: NftsService) {
+        this.nftsService = nftsService;
+    }
+
+    async getNftsToProcess(collectionId: string) : Promise<NftToProcess[] | null> {
         try {
-            const isProcessActive = true; // GET PROCESS STATUS FROM API
-
-            if (!isProcessActive) return null;
-
-            const nftsToProcess : NftToProcess[] = []; // GET NFTS TO PROCESS FROM API
+            const nftsToProcess : NftToProcess[] = await this.nftsService.getNftsToProcess(collectionId);
 
             if (!nftsToProcess || nftsToProcess.length === 0) return null;
 
             return nftsToProcess;
         } catch (e: any) {
-            console.log(`Error retriving the NFTs to process ${e}`);
+            console.log(`${new Date().toLocaleString()} - Error retriving the NFTs to process ${e}`);
 
             return null;
         }

@@ -33,7 +33,7 @@ export class MetaplexService {
         }
     }
 
-    async updateMetadata(nft: Sft | SftWithToken | Nft | NftWithToken, metadata: string) : Promise<boolean> {
+    async updateMetadata(nft: Sft | SftWithToken | Nft | NftWithToken, metadata: string) : Promise<string | null> {
         try {
             const updateInstructionData = toInstructionData(nft, {
                 uri: metadata,
@@ -55,16 +55,12 @@ export class MetaplexService {
             transaction.feePayer = this.wallet.publicKey;
             transaction.recentBlockhash = blockHash.blockhash;
 
-            const res = await sendAndConfirmTransaction(this.connection, transaction, [this.wallet]); // RETURN THE TRANSACTION HASH
-
-            // SAVE THE TRANSACTION HASH TO THE DATABASE THROUGHT THE API
-
-            console.log(res);
+            const transactionHash = await sendAndConfirmTransaction(this.connection, transaction, [this.wallet]);
               
-            return true;
+            return transactionHash;
         } catch (e: any) {
             console.log(`Cannot update NFT metadata ${nft} ${e}`);
-            return false;
+            return null;
         }
     }
 }
